@@ -1,0 +1,764 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Магльований · Досьє</title>
+<style>:root{padding-top:env(safe-area-inset-top,0);padding-bottom:env(safe-area-inset-bottom,0)}html,body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<style>
+  :root{
+    --bg:#f4f5f7; --card:#ffffff; --card-2:#fbfbfc; --line:#eceef1; --line-2:#e2e5ea;
+    --ink:#111417; --ink-2:#3d434b; --muted:#8a919b; --muted-2:#aab0b9;
+    --accent:#111417; --green:#22c55e; --blue:#2563eb;
+    --shadow:0 12px 40px rgba(20,28,44,.10),0 2px 8px rgba(20,28,44,.05);
+    --shadow-lg:0 26px 70px rgba(20,28,44,.16);
+    --r:24px;
+    color-scheme:light;
+    font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased;min-height:100svh}
+  h1,h2,h3{font-family:"Space Grotesk","Inter",sans-serif;font-weight:600;letter-spacing:-.02em}
+  .num{font-variant-numeric:tabular-nums}
+  a{color:var(--blue)}
+  button{font-family:inherit;color:inherit}
+  :focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+  .screen{display:none}
+  .screen.active{display:block}
+
+  .card-s{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
+
+  /* GATE */
+  #gate{min-height:100svh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:44px 18px}
+  .gate-inner{width:100%;max-width:560px;text-align:center}
+  .avatar{width:150px;height:150px;border-radius:50%;background-size:cover;background-position:center top;
+    border:4px solid #fff;box-shadow:0 14px 40px rgba(20,28,44,.20);margin:0 auto 28px}
+  .gate-name{font-size:clamp(32px,7vw,52px);line-height:1.02;margin:0 0 14px;text-wrap:balance}
+  .gate-sub{color:#9aa6bd;font-size:13px;max-width:42ch;margin:0 auto 32px;line-height:1.5}
+  .status-row{display:flex;gap:9px;justify-content:center;flex-wrap:wrap;margin-bottom:40px}
+  .chip{font-size:12.5px;padding:8px 15px;border-radius:999px;background:var(--card);border:1px solid var(--line-2);color:var(--muted)}
+  .chip b{color:var(--ink);font-weight:600}
+
+  .lever-wrap{margin:0 auto;max-width:480px}
+  .lever-labels{display:flex;justify-content:space-between;margin-bottom:14px;font-size:14px;font-weight:600;font-family:"Space Grotesk",sans-serif}
+  .lever-labels span{transition:color .2s,opacity .2s;color:var(--muted);opacity:.55;display:flex;align-items:center;gap:8px}
+  .lever-labels span.hot{color:var(--ink);opacity:1}
+  .track{position:relative;height:76px;border-radius:44px;background:var(--card);border:1px solid var(--line-2);
+    box-shadow:inset 0 2px 10px rgba(20,28,44,.06);cursor:grab;touch-action:none;overflow:hidden}
+  .track.grabbing{cursor:grabbing}
+  .track .end{position:absolute;top:50%;transform:translateY(-50%);width:20px;height:20px;border-radius:50%;opacity:.5}
+  .track .end.l{left:26px;background:radial-gradient(circle,var(--muted-2),transparent 68%)}
+  .track .end.r{right:26px;background:radial-gradient(circle,var(--muted-2),transparent 68%)}
+  .fill{position:absolute;top:6px;bottom:6px;border-radius:38px;pointer-events:none;opacity:.5;width:0;background:var(--line)}
+  .fill.l{right:50%} .fill.r{left:50%}
+  .knob{position:absolute;top:7px;left:50%;transform:translateX(calc(-50% + var(--dx,0px)));will-change:transform;width:62px;height:62px;border-radius:50%;
+    background:var(--ink);display:grid;place-items:center;color:#fff;
+    box-shadow:0 8px 20px rgba(20,28,44,.28);cursor:grab}
+  .knob svg{width:24px;height:24px}
+  .hint{margin-top:22px;color:var(--muted);font-size:13px}
+  .theme-toggle{display:none}
+
+  /* CONSOLE */
+  .wrap{max-width:880px;margin:0 auto;padding:calc(22px + env(safe-area-inset-top,0px)) 18px 64px}
+  .nav{display:flex;align-items:center;gap:10px;margin-bottom:22px;flex-wrap:wrap}
+  .nav-btn{display:inline-flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line-2);
+    border-radius:999px;padding:10px 17px;font-size:13.5px;font-weight:600;cursor:pointer;font-family:"Space Grotesk",sans-serif;
+    transition:.15s;box-shadow:var(--shadow)}
+  .nav-btn:hover{border-color:var(--ink);transform:translateY(-1px)}
+  .nav-btn svg{width:16px;height:16px}
+  .nav-btn.solid{background:var(--ink);border-color:var(--ink);color:#fff}
+  .nav-spacer{flex:1}
+  .nav-icon{width:44px;height:42px;border-radius:14px;display:grid;place-items:center;background:var(--card);
+    border:1px solid var(--line-2);cursor:pointer;box-shadow:var(--shadow)}
+  .nav-icon:hover{border-color:var(--ink)}
+  .nav-icon svg{width:19px;height:19px}
+
+  .ident{display:flex;gap:22px;align-items:center;padding:24px;margin-bottom:18px}
+  .ident .photo{width:104px;height:104px;border-radius:20px;flex:none;background-size:cover;background-position:center top;
+    border:1px solid var(--line-2)}
+  .ident h2{margin:0 0 6px;font-size:clamp(22px,4vw,29px);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .vbadge{width:24px;height:24px;flex:none}
+  .ident .role{color:var(--muted);font-size:14px;line-height:1.55}
+  .ident .metatags{display:flex;gap:7px;flex-wrap:wrap;margin-top:13px}
+
+  @media(max-width:560px){
+    .ident{flex-direction:column;align-items:flex-start;gap:16px;padding:20px}
+    .ident .photo{width:96px;height:96px}
+    .nav{gap:8px;flex-wrap:nowrap}
+    .nav-btn{padding:9px 12px;font-size:12.5px;gap:6px;white-space:nowrap}
+    .nav-icon{width:40px;height:40px;flex:none}
+  }
+  .tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+  .tile{padding:20px}
+  .tile .k{font-family:"Space Grotesk",sans-serif;font-size:34px;font-weight:600;line-height:1;letter-spacing:-.03em}
+  .tile .l{font-size:11.5px;color:var(--muted);margin-top:9px}
+  @media(max-width:640px){.tiles{grid-template-columns:repeat(2,1fr)}}
+
+  .section-h{font-family:"Space Grotesk",sans-serif;font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--muted);margin:32px 0 14px;display:flex;align-items:center;gap:11px}
+  .section-h::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--ink)}
+  .panel-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:720px){.panel-grid{grid-template-columns:1fr}}
+  .card{padding:19px;cursor:pointer;transition:transform .15s,border-color .15s,box-shadow .15s;position:relative}
+  .card:hover{transform:translateY(-3px);border-color:var(--line-2);box-shadow:var(--shadow-lg)}
+  .card .when{color:var(--muted);font-size:12.5px;font-weight:600;font-family:"Space Grotesk",sans-serif}
+  .card h3{margin:7px 0 5px;font-size:16px;font-weight:600}
+  .card .org{color:var(--muted);font-size:12.5px;line-height:1.5}
+  .card .expand{position:absolute;top:17px;right:17px;color:var(--muted-2);display:flex;align-items:center;gap:4px;font-size:11px}
+  .card .expand svg{width:14px;height:14px}
+  .card.honor{border-color:var(--ink)}
+  .badge{display:inline-block;font-size:11px;font-weight:600;padding:4px 11px;border-radius:999px;
+    border:1px solid var(--line-2);color:var(--muted);margin-top:11px;background:var(--card-2)}
+  .badge.gold{color:var(--ink);border-color:var(--ink)}
+
+  .comp{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+  @media(max-width:640px){.comp{grid-template-columns:1fr}}
+  .comp div{padding:14px 17px;font-size:13.5px;display:flex;align-items:center;gap:11px;border-radius:16px}
+  .comp div::before{content:"";width:8px;height:8px;border-radius:50%;flex:none;background:var(--ink)}
+
+  /* letter */
+  .letter-body{padding:clamp(24px,4vw,48px);max-width:720px;margin:0 auto}
+  .letter-body .addressee{font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:26px;border-left:2px solid var(--ink);padding-left:15px}
+  .letter-body .salut{font-weight:600;font-size:17px;margin-bottom:18px;font-family:"Space Grotesk",sans-serif}
+  .letter-body p{line-height:1.75;margin:0 0 15px;font-size:15px;color:var(--ink-2)}
+  .letter-body .lead{font-family:"Space Grotesk",sans-serif;font-size:clamp(20px,3.4vw,26px);line-height:1.3;margin:0 0 24px;
+    text-wrap:balance;font-weight:600;color:var(--ink)}
+  .letter-body b{color:var(--ink);font-weight:600}
+  .cycle{padding:16px 18px;border-radius:16px;text-align:center;font-weight:600;color:var(--ink);
+    font-size:clamp(12.5px,2.3vw,15px);line-height:1.7;margin:6px 0 20px;background:var(--card-2);border:1px solid var(--line-2);
+    font-family:"Space Grotesk",sans-serif}
+  .kicker{font-family:"Space Grotesk",sans-serif;font-size:clamp(17px,3vw,21px);border-top:1px solid var(--line-2);
+    padding-top:22px;margin-top:8px;line-height:1.35;text-wrap:balance;font-weight:600;color:var(--ink)}
+  .sign{margin-top:26px;font-size:14px;color:var(--muted)}
+  .sign b{color:var(--ink);font-weight:600}
+
+  /* modal */
+  .modal-scrim{position:fixed;inset:0;background:rgba(20,28,44,.42);backdrop-filter:blur(4px);z-index:60;
+    display:flex;align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto}
+  .modal{max-width:600px;width:100%;animation:rise .2s ease;border-radius:22px;background:var(--card);border:1px solid var(--line-2);box-shadow:var(--shadow-lg)}
+  @keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+  .modal-h{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;padding:22px 24px 16px;border-bottom:1px solid var(--line)}
+  .modal-h .when{color:var(--muted);font-size:12.5px;font-weight:600;font-family:"Space Grotesk",sans-serif}
+  .modal-h h3{margin:7px 0 0;font-size:19px}
+  .modal-h .org{color:var(--muted);font-size:13px;margin-top:6px;line-height:1.5}
+  .modal-x{background:var(--card-2);border:1px solid var(--line-2);border-radius:50%;width:36px;height:36px;flex:none;cursor:pointer;font-size:18px;line-height:1}
+  .modal-x:hover{border-color:var(--ink)}
+  .modal-body{padding:20px 24px 24px}
+  .modal-body p{line-height:1.68;font-size:14px;margin:0 0 14px;color:var(--ink-2)}
+  .link-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px}
+  .outlink{display:inline-flex;align-items:center;gap:8px;background:var(--card-2);border:1px solid var(--line-2);
+    color:var(--ink);text-decoration:none;border-radius:14px;padding:10px 14px;font-size:13px;transition:border-color .15s}
+  .outlink:hover{border-color:var(--ink)}
+  .outlink svg{width:15px;height:15px;flex:none}
+  .outlink small{color:var(--muted);display:block;font-size:10px;letter-spacing:.04em;text-transform:uppercase;margin-top:1px}
+  .verified{font-size:11px;color:var(--green);letter-spacing:.05em;text-transform:uppercase;font-weight:600;
+    display:inline-flex;align-items:center;gap:6px;margin-top:12px}
+  .verified::before{content:"●";font-size:8px}
+
+  /* document view */
+  .doc-scrim{position:fixed;inset:0;background:rgba(20,28,44,.9);z-index:80;overflow-y:auto;padding:26px 12px}
+  .doc-toolbar{max-width:820px;margin:0 auto 14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .doc-toolbar .note{margin-right:auto;color:#e8ecf2;font-size:12px;max-width:44ch;line-height:1.45}
+  .btn-primary{background:#fff;border:none;color:#111417;font-weight:700;font-size:12.5px;padding:12px 18px;border-radius:12px;cursor:pointer;font-family:"Space Grotesk",sans-serif}
+  .btn-ghost{background:none;border:1px solid #c6ccd6;color:#e8ecf2;font-weight:600;font-size:12.5px;padding:12px 18px;border-radius:12px;cursor:pointer;font-family:"Space Grotesk",sans-serif}
+
+  .doc-paper{max-width:820px;margin:0 auto;background:#fff;color:#14181d;border-radius:4px;
+    padding:22mm 20mm;box-shadow:0 30px 80px rgba(0,0,0,.4);font-family:"Inter",sans-serif}
+  /* CV paper – mirrors original CV (Arial, #2c5f7c accent, date column, spaced section titles) */
+  .doc-paper.cv{max-width:210mm;padding:12.3mm 15.9mm 10.6mm;font-family:Arial,"Liberation Sans",Helvetica,sans-serif;color:#1a1a1a;line-height:1.2}
+  .cv .h{display:flex;justify-content:space-between;align-items:flex-start;gap:5mm;margin-bottom:2pt}
+  .cv .h h1{font:700 15pt/1.2 Arial,"Liberation Sans",Helvetica,sans-serif;margin:0 0 3pt;color:#1a1a1a;letter-spacing:0;text-transform:uppercase}
+  .cv .tag{font-style:italic;font-size:8.5pt;color:#666;margin-bottom:2.5pt;line-height:1.3}
+  .cv .meta{font-size:8pt;color:#666;line-height:1.35}
+  .cv .ph{width:26.5mm;height:26.5mm;flex:none;object-fit:cover;object-position:center top;display:block}
+  .cv .sec{font-weight:700;font-size:10pt;color:#2c5f7c;text-transform:uppercase;letter-spacing:.85em;word-spacing:1.1em;
+    border-bottom:.75pt solid #2c5f7c;padding-bottom:3pt;margin:13pt 0 4pt;line-height:1.5;break-after:avoid;page-break-after:avoid}
+  .cv .r{display:grid;grid-template-columns:23.47% 1fr;break-inside:avoid;page-break-inside:avoid}
+  .cv .r>div{padding:0 1.9mm}
+  .cv .d{font-size:8.5pt;color:#666;padding-top:1.5pt!important;padding-bottom:1.5pt!important;white-space:pre-line}
+  .cv .b{font-weight:700;font-size:9pt;color:#1a1a1a;margin-top:1.5pt;margin-bottom:.75pt}
+  .cv .b.s{font-size:8.5pt}
+  .cv .n{font-size:8.5pt;color:#444;margin-bottom:.75pt}
+  .cv .n.s{font-size:8pt}
+  .cv .i{font-style:italic;font-size:8pt;color:#666;margin-bottom:.5pt}
+  .cv .a{font-weight:700;font-size:8.5pt;color:#2c5f7c;margin:.75pt 0}
+  .cv .dual{display:grid;grid-template-columns:1fr 1fr;gap:0 3.8mm}
+  .cv .cv-comp{display:grid;grid-template-columns:1fr 1fr;gap:1.5pt 3.8mm;font-size:8.5pt;color:#1a1a1a;padding:0 1.9mm}
+  @media screen and (max-width:600px){
+    .doc-paper.cv{padding:20px 14px}
+    .cv .h .ph{width:74px;height:74px}
+    .cv .sec{letter-spacing:.4em;word-spacing:.5em}
+    .cv .r{grid-template-columns:84px 1fr}
+    .cv .r>div{padding:0 4px}
+    .cv .dual,.cv .cv-comp{grid-template-columns:1fr}
+  }
+  .doc-paper.letter p{line-height:1.62;font-size:12.5px;margin:0 0 11px;text-align:justify}
+  .doc-paper.letter .l-lead{font-family:"Space Grotesk",sans-serif;font-weight:600;font-size:15px;margin-bottom:14px;text-align:left}
+  .doc-paper.letter .l-cycle{font-family:"Space Grotesk",sans-serif;font-weight:600;text-align:center;background:#f4f5f7;border:1px solid #e2e5ea;
+    padding:11px;border-radius:4px;margin:6px 0 14px;font-size:12px;color:#111417}
+  .doc-paper.letter .l-kick{font-family:"Space Grotesk",sans-serif;font-weight:600;color:#111417;border-top:1px solid #e4e7ec;padding-top:14px;margin-top:14px;text-align:left}
+
+
+  /* ---- v3: tighter spacing, profile cards, dock, chunked letter ---- */
+  #gate{padding:18px 14px;justify-content:center}
+  #gate:not(.active){display:none}
+  .gate-inner{max-width:400px}
+  .lever-wrap{margin-top:18px}
+  .lever-labels{margin-bottom:9px;font-size:13px}
+  .track{height:64px}
+  .fill{top:5px;bottom:5px}
+  .knob{top:5px;width:52px;height:52px}
+  .knob svg{width:21px;height:21px}
+  .hint{margin-top:10px;font-size:12px}
+
+  .pcard{position:relative;border-radius:28px;overflow:hidden;background:#fff;border:1px solid var(--line);box-shadow:var(--shadow);text-align:left;isolation:isolate}
+  .pc-photo{position:relative;aspect-ratio:1/1.08;background-size:cover;background-position:center 20%;background-color:#e9ebee}
+  .pc-photo::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,0) 50%,rgba(255,255,255,.72) 72%,#fff 92%)}
+  .pc-body{position:relative;z-index:1;margin-top:-118px;padding:0 18px 16px}
+  .pc-name{font-family:"Inter",sans-serif;font-weight:600;letter-spacing:-.025em;font-size:clamp(22px,5.6vw,26px);line-height:1.12;margin:0 0 6px;color:var(--ink);text-wrap:balance}
+  .pc-name .vbadge{width:22px;height:22px;vertical-align:-3px;margin-left:4px}
+  .pc-role{font-size:14px;line-height:1.45;color:var(--ink-2);margin:0 0 12px}
+  .pc-stats{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+  .pc-stats span{display:inline-flex;align-items:center;gap:5px}
+  .pc-stats svg{width:16px;height:16px;flex:none}
+  .pc-stats b{color:var(--ink);font-weight:600}
+  .pc-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line-2);background:#f3f4f6;border-radius:999px;padding:9px 15px;
+    font:600 14px "Inter",sans-serif;cursor:pointer;color:var(--ink);white-space:nowrap;transition:background .15s,color .15s}
+  .pill svg{width:16px;height:16px}
+  .pill:hover,.pill.dark{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .pill.dark:hover{opacity:.88}
+
+  .dock{position:sticky;top:calc(8px + env(safe-area-inset-top,0px));z-index:50;display:flex;gap:4px;width:max-content;max-width:calc(100% - 20px);
+    margin:10px auto 0;padding:5px;border-radius:999px;background:rgba(255,255,255,.8);-webkit-backdrop-filter:saturate(1.6) blur(14px);backdrop-filter:saturate(1.6) blur(14px);
+    border:1px solid var(--line-2);box-shadow:0 8px 28px rgba(20,28,44,.12)}
+  .dock-btn{display:inline-flex;align-items:center;gap:7px;border:none;background:transparent;border-radius:999px;padding:9px 14px;
+    font:600 13.5px "Space Grotesk",sans-serif;cursor:pointer;color:var(--ink-2);white-space:nowrap;transition:background .15s,color .15s}
+  .dock-btn svg{width:17px;height:17px;flex:none}
+  .dock-btn:hover{background:var(--line)}
+  .dock-btn.on{background:var(--ink);color:#fff}
+  .dock-btn.icon{padding:9px 11px}
+  .dock .sm{display:none}
+
+  .wrap{padding:14px 16px 48px}
+  .cv-top{display:grid;grid-template-columns:minmax(0,320px) 1fr;gap:12px;margin-bottom:4px}
+  .cv-card .pc-photo{aspect-ratio:1/1}
+  .cv-side{display:flex;flex-direction:column;gap:12px;min-width:0}
+  .cv-side .tiles{flex:1;grid-template-columns:repeat(2,1fr);grid-auto-rows:1fr;margin:0}
+  .tile{padding:14px 18px;display:flex;flex-direction:column;justify-content:center}
+  .tile .k{font-size:30px}
+  .tile .l{margin-top:6px}
+  .lang{padding:12px 16px;font-size:13px;color:var(--muted);line-height:1.5;border-radius:18px}
+  .lang b{color:var(--ink)}
+  .section-h{margin:22px 0 10px}
+  .panel-grid{gap:10px}
+  .card{padding:15px 16px}
+  .card .expand{top:14px;right:14px}
+  .card h3{margin:5px 0 4px;font-size:15.5px}
+  .badge{margin-top:8px}
+  .comp{gap:8px}
+  .comp div{padding:11px 14px;font-size:13px}
+
+  /* letter */
+  .l-hero{padding:22px 22px 18px}
+  .l-label{font:600 12px "Space Grotesk",sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+  .l-lead{font:600 clamp(21px,4.2vw,29px)/1.22 "Space Grotesk",sans-serif;letter-spacing:-.02em;margin:0 0 12px;text-wrap:balance}
+  .l-intro{font-size:15px;line-height:1.6;color:var(--ink-2);margin:0 0 14px}
+  .l-meta{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .l-meta .chip{padding:7px 12px;font-size:12px}
+  .l-meta .pill{margin-left:auto;padding:8px 14px;font-size:13px}
+  .l-sn{font-variant-numeric:tabular-nums;color:var(--ink)}
+  .section-h .l-sn{margin-right:-4px}
+  .l-grid{display:grid;gap:10px}
+  .l-grid.three{grid-template-columns:repeat(3,1fr)}
+  .l-grid.two{grid-template-columns:repeat(2,1fr)}
+  .l-card{padding:15px 16px;cursor:pointer;display:flex;flex-direction:column;gap:8px;transition:transform .15s,box-shadow .15s}
+  .l-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+  .l-card h3{margin:0;font-size:15.5px;line-height:1.3}
+  .l-card p{margin:0;font-size:14px;line-height:1.55;color:var(--ink-2)}
+  .l-top{display:flex;gap:10px;align-items:flex-start}
+  .l-idx{flex:none;width:28px;height:28px;border-radius:9px;background:var(--ink);color:#fff;display:grid;place-items:center;font:700 13px "Space Grotesk",sans-serif}
+  .l-tags{display:flex;flex-wrap:wrap;gap:5px}
+  .l-tags span{font-size:11px;padding:3px 9px;border-radius:999px;border:1px solid var(--line-2);color:var(--muted);background:var(--card-2)}
+  .l-more{margin-top:auto;padding-top:2px;display:inline-flex;align-items:center;gap:5px;font-size:12.5px;font-weight:600;color:var(--ink)}
+  .l-more svg{width:14px;height:14px}
+  .l-band{margin:12px 0 0;padding:18px 20px;border-radius:var(--r);background:var(--ink);color:#fff}
+  .l-band p{margin:0;font-size:14.5px;line-height:1.55;color:#cfd5de}
+  .l-band p:first-child{font:600 17px/1.35 "Space Grotesk",sans-serif;color:#fff;margin-bottom:6px}
+  .l-sci{padding:16px 18px}
+  .l-sci p{margin:0;font-size:14.5px;line-height:1.6;color:var(--ink-2)}
+  .l-steps{list-style:none;padding:0;margin:12px 0;display:flex;flex-wrap:wrap;gap:6px;counter-reset:s}
+  .l-steps li{counter-increment:s;display:inline-flex;align-items:center;gap:7px;padding:7px 12px 7px 7px;border-radius:999px;background:var(--card-2);border:1px solid var(--line-2);font-size:13px;font-weight:600}
+  .l-steps li::before{content:counter(s);width:20px;height:20px;border-radius:50%;background:var(--ink);color:#fff;font-size:11px;display:grid;place-items:center;flex:none}
+  .l-quote p{font:600 clamp(18px,3.4vw,22px)/1.3 "Space Grotesk",sans-serif;color:var(--ink);text-wrap:balance}
+  .l-quote{padding:18px 20px}
+  .l-final{padding:18px 20px;margin-top:10px}
+  .l-final .kicker{margin:0;padding:0;border:0;font-size:clamp(16px,2.8vw,19px)}
+  .l-final .sign{margin-top:16px}
+  .modal-body.letter-m p{font-size:15px;line-height:1.7}
+  .modal-f{display:flex;justify-content:space-between;gap:10px;padding:0 24px 20px}
+  .mini{border:1px solid var(--line-2);background:var(--card-2);border-radius:12px;padding:9px 12px;font:600 12.5px "Inter",sans-serif;cursor:pointer;color:var(--ink);text-align:left;max-width:48%}
+  .mini:hover{border-color:var(--ink)}
+  .modal-f .mini:last-child{text-align:right;margin-left:auto}
+
+  @media(max-width:820px){.l-grid.three{grid-template-columns:1fr}}
+  @media(max-width:720px){
+    .cv-top{grid-template-columns:1fr}
+    .cv-card .pc-photo{aspect-ratio:1/.9}
+    .cv-side .tiles{grid-template-columns:repeat(4,1fr);gap:8px}
+    .tile{padding:11px 10px;border-radius:16px}
+    .tile .k{font-size:21px}
+    .tile .l{font-size:10.5px;margin-top:4px;line-height:1.25}
+    .l-grid.two{grid-template-columns:1fr}
+  }
+  @media(max-width:560px){
+    .dock .lg{display:none}.dock .sm{display:inline}
+    .dock-btn{padding:9px 12px;font-size:13px;gap:6px}
+    .wrap{padding:10px 12px 40px}
+    .section-h{margin:18px 0 8px;font-size:11px}
+    .card{padding:13px 14px}
+    .card .expand{font-size:0;gap:0}
+    .card .expand svg{width:15px;height:15px}
+    .card h3{font-size:15px;padding-right:14px}
+    .comp{grid-template-columns:1fr 1fr;gap:6px}
+    .comp div{padding:9px 11px;font-size:12px;gap:8px;align-items:flex-start;line-height:1.35}
+    .comp div::before{margin-top:5px;width:6px;height:6px}
+    .cv-side{gap:8px}
+    .lang{padding:10px 12px;font-size:12px}
+    .pc-body{padding:0 16px 14px;margin-top:-110px}
+    .pc-role{font-size:13.5px;margin-bottom:10px}
+    .l-hero{padding:18px 16px 14px}
+    .l-intro{font-size:14.5px}
+    .l-card,.l-sci,.l-quote,.l-final{padding:14px 15px}
+    .l-band{padding:15px 16px}
+    .modal-scrim{padding:12px 8px}
+    .modal-h{padding:16px 18px 12px}
+    .modal-body{padding:14px 18px 16px}
+    .modal-f{padding:0 18px 16px}
+  }
+  @media(max-height:700px) and (max-width:560px){.gate-card .pc-photo{aspect-ratio:1/.85}}
+  #printRoot{display:none}
+  @page{size:A4;margin:12mm 15mm 11mm}
+  @media print{
+    html,body{height:auto!important;min-height:0!important;overflow:visible!important;background:#fff!important}
+    #app,#modalRoot,#docRoot{display:none!important}
+    #printRoot{display:block!important}
+    .print-doc{display:none}
+    body[data-print="cv"] .print-doc[data-kind="cv"],body[data-print="letter"] .print-doc[data-kind="letter"]{display:block}
+    .doc-paper,.doc-paper.cv{box-shadow:none!important;max-width:none!important;width:auto!important;padding:0!important;border-radius:0!important;margin:0!important}
+    .doc-paper.letter p{break-inside:avoid}
+    *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+  }
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap">
+
+</head>
+<body data-print="cv">
+<div id="app">
+  <nav class="dock" id="dock" aria-label="Навігація" hidden>
+    <button class="dock-btn" data-home><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8M5 10v10h14V10"/></svg><span>Головна</span></button>
+    <button class="dock-btn" data-go="cv"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></svg><span class="lg">Резюме (CV)</span><span class="sm">CV</span></button>
+    <button class="dock-btn" data-go="letter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg><span class="lg">Мотиваційний лист</span><span class="sm">Лист</span></button>
+    <button class="dock-btn icon" id="printBtn" title="Друк / PDF" aria-label="Друк / PDF"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg></button>
+  </nav>
+
+  <section class="screen active" id="gate">
+    <div class="gate-inner">
+      <div class="pcard gate-card">
+        <div class="pc-photo" data-photo></div>
+        <div class="pc-body">
+          <h1 class="pc-name">Магльований Сергій Іванович <svg class="vbadge" viewBox="0 0 24 24" fill="none"><path d="M12 1.5l2.6 1.9 3.2-.2 1 3.05 2.6 1.9-1 3.05 1 3.05-2.6 1.9-1 3.05-3.2-.2L12 22.5l-2.6-1.9-3.2.2-1-3.05-2.6-1.9 1-3.05-1-3.05 2.6-1.9 1-3.05 3.2.2z" fill="#22c55e"/><path d="M8.5 12.2l2.3 2.3 4.7-4.7" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></h1>
+          <p class="pc-role">Підполковник ЗС України · 22 роки служби · Military Education &amp; Defence Innovation</p>
+          <div class="pc-stats">
+            <span title="Thales Prize, ACSC"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="9" r="6"/><path d="M8.5 14L7 22l5-3 5 3-1.5-8"/></svg><b>Thales Prize</b></span>
+            <span title="Англійська SLP 4"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg><b>SLP 4</b></span>
+            <span title="MSc Defence Innovation, KCL"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 9l10-5 10 5-10 5z"/><path d="M6 11v5c3 2.5 9 2.5 12 0v-5"/></svg><b>MSc KCL</b></span>
+          </div>
+        </div>
+      </div>
+      <div class="lever-wrap">
+        <div class="lever-labels">
+          <span id="labL"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg> Резюме (CV)</span>
+          <span id="labR">Мотиваційний лист <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></span>
+        </div>
+        <div class="track" id="track" role="slider" aria-valuemin="-1" aria-valuemax="1" aria-valuenow="0"
+             aria-label="Оберіть документ: ліворуч резюме, праворуч мотиваційний лист" tabindex="0">
+          <span class="end l"></span><span class="end r"></span>
+          <div class="fill l" id="fillL"></div><div class="fill r" id="fillR"></div>
+          <div class="knob" id="knob"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2"><path d="M8 9l-4 3 4 3M16 9l4 3-4 3"/></svg></div>
+        </div>
+        <div class="hint">Потягніть важіль до кінця · або стрілки ← →</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen" id="cv">
+    <div class="wrap">
+      <div class="cv-top">
+        <div class="pcard cv-card">
+          <div class="pc-photo" data-photo></div>
+          <div class="pc-body">
+            <h2 class="pc-name">Магльований Сергій Іванович <svg class="vbadge" viewBox="0 0 24 24" fill="none"><path d="M12 1.5l2.6 1.9 3.2-.2 1 3.05 2.6 1.9-1 3.05 1 3.05-2.6 1.9-1 3.05-3.2-.2L12 22.5l-2.6-1.9-3.2.2-1-3.05-2.6-1.9 1-3.05-1-3.05 2.6-1.9 1-3.05 3.2.2z" fill="#22c55e"/><path d="M8.5 12.2l2.3 2.3 4.7-4.7" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></h2>
+            <p class="pc-role">Підполковник · Офіцер ЗС України<br>Military Education &amp; Defence Innovation · International Security &amp; Defence Policy</p>
+            <div class="pc-row">
+              <div class="pc-stats">
+                <span title="Дата народження"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><b>25.12.1985</b></span>
+                <span title="Мови"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg><b>4 мови</b></span>
+              </div>
+              <button class="pill" data-print-open>PDF <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 4v12M6 11l6 6 6-6M5 20h14"/></svg></button>
+            </div>
+          </div>
+        </div>
+        <div class="cv-side">
+          <div class="tiles">
+            <div class="tile card-s"><div class="k num">22</div><div class="l">роки служби</div></div>
+            <div class="tile card-s"><div class="k num">47</div><div class="l">країн на ACSC</div></div>
+            <div class="tile card-s"><div class="k num">20K+</div><div class="l">підготовлено</div></div>
+            <div class="tile card-s"><div class="k num">4</div><div class="l">бойові / місії</div></div>
+          </div>
+          <div class="lang card-s"><b>Мови:</b> УКР (рідна) · ENG (вільно, SLP&nbsp;4) · RUS (вільно) · POL (розмовний)</div>
+        </div>
+      </div>
+      <div class="section-h">Освіта</div><div class="panel-grid" id="eduGrid"></div>
+      <div class="section-h">Досвід служби</div><div class="panel-grid" id="svcGrid"></div>
+      <div class="section-h">Участь у бойових діях та міжнародних операціях</div><div class="panel-grid" id="opsGrid"></div>
+      <div class="section-h">Курсова підготовка</div><div class="panel-grid" id="crsGrid"></div>
+      <div class="section-h">Ключові компетенції</div><div class="comp" id="compGrid"></div>
+    </div>
+  </section>
+
+  <section class="screen" id="letter">
+    <div class="wrap" id="letterWrap"></div>
+  </section>
+</div>
+
+<div id="modalRoot"></div>
+<div id="docRoot"></div>
+<div id="printRoot" aria-hidden="true"></div>
+
+<script>
+const PHOTO="data:image/jpeg;base64,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";
+const SEARCH=q=>"https://www.google.com/search?q="+encodeURIComponent(q);
+
+const EDU=[
+ {when:"09.2025 – 07.2026",title:"MSc Defence Innovation",org:"King's College London (KCL), Faculty of Social Science & Public Policy · Велика Британія",badge:"DRP (A+)",
+  detail:"Магістратура з оборонних інновацій у провідному світовому центрі досліджень війни та безпеки. Дослідницька робота (Defence Research Paper) оцінена на найвищий бал (A+). Програма дала інструментарій перетворення бойового досвіду на системні рішення – прямий місток до завдань науково-технічної діяльності у сфері оборони.",
+  links:[{label:"King's College London",sub:"офіційний сайт",url:"https://www.kcl.ac.uk/"}]},
+ {when:"09.2024 – т.ч.",title:"Магістр – Міжнародні відносини",org:"КНУ ім. Тараса Шевченка, Київ · Освітня програма «Зовнішня політика»",badge:"291 Міжнародні відносини",
+  detail:"Друга магістратура за спеціальністю 291 «Міжнародні відносини, суспільні комунікації та регіональні студії». Фахова база для роботи у сфері міжнародного оборонного співробітництва та безпекової політики.",
+  links:[{label:"ННІ міжнародних відносин",sub:"КНУ ім. Шевченка",url:"https://www.iir.edu.ua/en"}]},
+ {when:"09.2008 – 2013",title:"Спеціаліст – філолог англійської мови",org:"Житомирський державний університет імені Івана Франка",badge:"Англійська філологія",
+  detail:"Вища освіта за фахом «філолог іноземної мови та літератури (англійська)». Фундамент для подальшого досягнення рівня SLP 4 та навчання/викладання в англомовному середовищі.",
+  links:[{label:"ЖДУ ім. Івана Франка",sub:"офіційний сайт",url:"https://zu.edu.ua/"}]},
+];
+const SVC=[
+ {when:"05.2025 – 07.2026",title:"Advanced Command & Staff Course",org:"Об'єднаний командно-штабний коледж, Академія оборони, Велика Британія",honor:true,badge:"Thales Prize · Top International Student",
+  detail:"Командно-штабний курс підвищеного рівня (оперативний рівень військової освіти). Завершено з відзнакою Top International Student серед представників 47 країн – перший українець за майже 30 років на дошці пошани цього курсу. Відзнака Thales Prize.",
+  links:[
+   {label:"Defence Academy of the UK",sub:"ACSC · офіційна сторінка",url:"https://www.da.mod.uk/courses/advanced-command-and-staff-course/"},
+   {label:"АрміяInform",sub:"офіційний ЗСУ",url:"https://armyinform.com.ua/2026/07/25/ukrayinskyj-oficzer-vpershe-za-majzhe-30-rokiv-stav-najkrashhym-inozemnym-sluhachem-prestyzhnogo-vijskovogo-kursu-velykoyi-brytaniyi/"},
+  ],verified:true},
+ {when:"01.2024 – 05.2025",title:"Помічник заступника Міністра оборони / Помічник Спецуповноваженого Президента",org:"Міністерство оборони України · Офіс Президента України",badge:"Стратегічний рівень",
+  detail:"Робота у переговорній команді з підготовки та підписання понад двох десятків двосторонніх безпекових угод. Щоденна взаємодія з КМУ, МЗС, НАТО, ЄС та дипломатичними установами. Головний спеціаліст відділу забезпечення засобами ближнього бою (адміністративно).",links:[]},
+ {when:"01.2024 – 03.2024",title:"Начальник відділення імітаційного моделювання",org:"199 навчальний центр Десантно-штурмових військ ЗС України",badge:"Підготовка",
+  detail:"Керівництво напрямом імітаційного (симуляційного) моделювання у підготовці особового складу ДШВ.",links:[]},
+ {when:"12.2022 – 01.2024",title:"Офіцер сертифікації / Керівник міжнародної робочої групи",org:"Управління підготовки Командування ДШВ · Op INTERFLEX (Велика Британія; Франція)",badge:"20 тис.+ підготовлено",
+  detail:"Відповідальний за організацію підготовки понад 20 тисяч військовослужбовців ЗС України. Керівник міжнародної робочої групи з розробки навчальних публікацій: Leader & Commander Handbook, Recruit Handbook та Slate Cards – впроваджені в рамках Op INTERFLEX.",
+  links:[{label:"Operation INTERFLEX",sub:"пошук по темі",url:SEARCH("Operation Interflex Ukraine training UK")}]},
+ {when:"12.2021 – 12.2022",title:"Офіцер відділу планування (S-5, Future Planning)",org:"LITPOLUKRBRIG (Lithuanian–Polish–Ukrainian Brigade), Люблін, Польща",badge:"Багатонаціональний штаб",
+  detail:"Штабна служба у багатонаціональній бригаді – перспективне планування (S-5). Практичний досвід роботи у структурі за стандартами НАТО.",
+  links:[{label:"LITPOLUKRBRIG",sub:"офіційний сайт",url:"https://litpolukrbrig.wp.mil.pl/en/"}]},
+ {when:"03.2016 – 12.2018",title:"Старший помічник начальника відділення бойової підготовки",org:"Військова частина А0281, Житомир",badge:"Бойова підготовка",
+  detail:"Організація бойової підготовки в органі військового управління.",links:[]},
+ {when:"09.2004 – 03.2016",title:"Від строковика-розвідника до головного старшини бригади",org:"95-та окрема аеромобільна/десантно-штурмова бригада · в/ч А0281, В1740",badge:"11 років у сержантському корпусі",
+  detail:"Повний шлях сержантського корпусу: снайпер-розвідник → заступник командира взводу → головний сержант розвідроти → головний старшина бригади → (після бойового призначення) заступник командира розвідувальної роти. Офіцерське звання здобуто безпосередньо з бойового досвіду.",links:[]},
+];
+const OPS=[
+ {when:"04.2014 – 05.2018",title:"Бойові дії на сході України (АТО / ООС)",org:"95-та бригада · розвідка",badge:"Бойовий досвід",
+  detail:"Участь у бойових діях на сході України. Розвідувальні завдання, зокрема в операціях з оточення населених пунктів; безпосереднє бойове призначення на офіцерську посаду.",links:[]},
+ {when:"2007; 2009–2010",title:"Миротворча місія KFOR – Косово",org:"Підтримка миру та стабільності",badge:"Міжнародна операція",
+  detail:"Два ротаційні періоди у складі миротворчого контингенту KFOR (Косово).",
+  links:[{label:"NATO KFOR",sub:"пошук по темі",url:SEARCH("NATO KFOR Kosovo mission")}]},
+];
+const CRS=[
+ {when:"10.2025 – 03.2026",title:"Hacking for Ministry of Defence (H4MoD)",org:"University accelerator · практика в Silicon Valley, Каліфорнія, США · Велика Британія",badge:"Оборонні інновації",
+  detail:"Акселераторний модуль з оборонних інновацій із подальшою практикою у Silicon Valley. Методологія проблемно-орієнтованих оборонних досліджень.",
+  links:[{label:"Hacking for Defense (Stanford)",sub:"офіційний сайт",url:"https://hackingfordefense.stanford.edu/"}]},
+ {when:"2018 – 2021",title:"Курс планування багатонаціональних навчань (інструктор)",org:"Польща / Грузія / Північна Македонія",badge:"Інструктор",
+  detail:"Робота інструктором на курсах планування багатонаціональних військових навчань.",
+  links:[{label:"Exercise Planning Course",sub:"General Staff (MK)",url:"https://mil.mk/general-staff-activities/uchestvo-na-personal-od-armijata-na-megjunaroden-kurs-za-procesot-na-planiranje-na-vezhbi/?lang=en"}]},
+ {when:"09–12.2011",title:"US Marine Corps Combat Instructor Course",org:"Camp Geiger, Джексонвілл, Північна Кароліна, США",badge:"USMC",
+  detail:"Курс бойових інструкторів Корпусу морської піхоти США.",links:[]},
+ {when:"07–09.2011",title:"US Marine Corps Squad Leaders Course",org:"Camp Geiger, Північна Кароліна, США",badge:"USMC",
+  detail:"Курс командирів відділень Корпусу морської піхоти США.",links:[]},
+ {when:"04–07.2011",title:"Defense Language Institute – англійська мова",org:"Сан-Антоніо, Техас, США",badge:"DLI",
+  detail:"Мовна підготовка в Інституті іноземних мов Міністерства оборони США.",links:[]},
+ {when:"06–07.2015; 10–11.2015",title:"Курс штабних процедур · Інструктор загальновійськової підготовки",org:"Сараєво (Боснія і Герцеговина) · Познань (Польща)",badge:"Штабні процедури",
+  detail:"Курс штабних процедур (Сараєво) та робота інструктором загальновійськової підготовки (Познань).",links:[]},
+];
+const COMP=[
+ "Підготовка, оцінювання та професійний розвиток особового складу",
+ "Оборонні інновації та H4MoD",
+ "Стратегічне та оперативне планування",
+ "Багатонаціональні операції (NATO)",
+ "Міжнародне співробітництво та дипломатія",
+ "Зовнішня політика та міжнародна безпека",
+ "Розвідка та спеціальні операції",
+ "Кризове врегулювання та миротворчі місії",
+];
+
+/* photo injection */
+document.querySelectorAll('[data-photo]').forEach(e=>e.style.backgroundImage=`url(${PHOTO})`);
+
+function cardHTML(item,i,group){
+ return `<div class="card card-s ${item.honor?'honor':''}" data-group="${group}" data-i="${i}" tabindex="0" role="button">
+  <span class="expand">детальніше <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H8M17 7v9"/></svg></span>
+  <div class="when num">${item.when}</div><h3>${item.title}</h3><div class="org">${item.org}</div>
+  ${item.badge?`<span class="badge ${item.honor?'gold':''}">${item.badge}</span>`:''}</div>`;
+}
+const GROUPS={edu:EDU,svc:SVC,ops:OPS,crs:CRS};
+eduGrid.innerHTML=EDU.map((x,i)=>cardHTML(x,i,'edu')).join('');
+svcGrid.innerHTML=SVC.map((x,i)=>cardHTML(x,i,'svc')).join('');
+opsGrid.innerHTML=OPS.map((x,i)=>cardHTML(x,i,'ops')).join('');
+crsGrid.innerHTML=CRS.map((x,i)=>cardHTML(x,i,'crs')).join('');
+compGrid.innerHTML=COMP.map(c=>`<div class="card-s">${c}</div>`).join('');
+
+const modalRoot=document.getElementById('modalRoot');
+function openModal(item){
+ const links=(item.links&&item.links.length)?`<div class="link-row">${item.links.map(l=>`
+   <a class="outlink" href="${l.url}" target="_blank" rel="noopener">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6M10 14L21 3"/></svg>
+    <span>${l.label}<small>${l.sub||'відкрити'}</small></span></a>`).join('')}</div>`:'';
+ const verified=item.verified?`<div class="verified">Джерела підтверджені</div>`:'';
+ modalRoot.innerHTML=`<div class="modal-scrim" id="scrim"><div class="modal" role="dialog" aria-modal="true" aria-label="${item.title}">
+   <div class="modal-h"><div><div class="when num">${item.when}</div><h3>${item.title}</h3><div class="org">${item.org}</div></div>
+   <button class="modal-x" id="mx" aria-label="Закрити">×</button></div>
+   <div class="modal-body"><p>${item.detail}</p>${links}${verified}</div></div></div>`;
+ const scrim=document.getElementById('scrim');
+ scrim.addEventListener('click',e=>{if(e.target===scrim)closeModal();});
+ document.getElementById('mx').addEventListener('click',closeModal);
+ document.addEventListener('keydown',escClose);document.getElementById('mx').focus();
+}
+function closeModal(){modalRoot.innerHTML='';document.removeEventListener('keydown',escClose);}
+function escClose(e){if(e.key==='Escape')closeModal();}
+document.querySelectorAll('.card').forEach(c=>{
+ const act=()=>openModal(GROUPS[c.dataset.group][+c.dataset.i]);
+ c.addEventListener('click',act);
+ c.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();act();}});
+});
+
+const dock=document.getElementById('dock'),letterWrap=document.getElementById('letterWrap');
+const LP=["Військова освіта не повинна наздоганяти війну. Вона повинна <b>передбачати її.</b>", "Саме так я розумію завдання військової освіти і науки – не як сукупність програм, курсів і дипломів, а як один із ключових механізмів розвитку бойової спроможності Сил оборони.", "У 2004 році я розпочав службу у розвідці 95-ї окремої аеромобільної бригади. Пройшов шлях від солдата і сержанта до командира, штабного офіцера та офіцера міжнародних структур. Воював із 2014 року, отримав офіцерське звання під час виконання бойових завдань, а в період повномасштабного вторгнення – готував військовослужбовців і працював на оперативному та стратегічному рівнях. За ці роки я був не лише тим, кого навчали. Я навчав, командував, відповідав за підготовку, працював у багатонаціональних штабах і спостерігав, як різні системи формують військового професіонала. KFOR, LITPOLUKRBRIG, підготовка у США, навчання у Британії та модуль у Кремнієвій Долині дозволили побачити військову освіту з різних боків – від солдата до рівня міністерств та ОПУ.", "ACSC і KCL стали не просто наступним етапом освіти, а можливістю подивитися на власний досвід крізь іншу інституційну оптику. Навчання разом із представниками п'ятдесяти країн і отримані відзнаки підтвердили не стільки особистий результат, скільки цінність середовища, яке змушує мислити ширше за межі власної посади та власної армії. Саме порівняння цих систем переконало мене: Україні не потрібно копіювати чужі моделі. Нам потрібна власна система, яка поєднає найкраще з НАТО, український бойовий досвід, науковий потенціал і темп сучасної війни.", "Україна вже створила важливу основу для цього. Запроваджено багаторівневу систему професійної військової освіти L1–L5, розвивається принцип безперервної освіти протягом військової кар'єри, посилюється взаємодія з НАТО. Сьогодні питання вже не лише в тому, щоб побудувати правильну архітектуру. Питання в тому, наскільки швидко ця архітектура здатна навчатися, змінюватися і перетворювати досвід на реальні спроможності.", "Саме тут я бачу свою мотивацію і свою потенційну роль.", "Я хочу працювати над системою, у якій розвиток військового професіонала безпосередньо пов'язаний із розвитком спроможностей Сил оборони.", "Для мене це починається з <b>культури довіри та делегування.</b> Сильний сержант не є конкурентом офіцеру. Він його найближчий професійний партнер. Відповідальність має рухатися вгору, а повноваження – вниз настільки далеко, наскільки це дозволяють компетентність, обстановка і, звісно, довіра. Таку філософію неможливо сформувати одним наказом. Вона має послідовно проходити через освіту всіх категорій військовослужбовців – від базової підготовки та сержантських курсів до оперативного і стратегічного рівнів.", "Друге – це <b>швидкість перетворення бойового досвіду на знання.</b> Війна змінюється швидше, ніж документи. Доктрина потрібна для кодифікації досвіду, але не може бути єдиним каналом його передачі. Ми маємо швидше залучати бойових офіцерів і сержантів до навчання наступного покоління – через викладання, наставництво, розбір кейсів і професійні дискусії. Люди передають досвід швидше, ніж система встигає його формалізувати.", "Третє – зробити військову освіту <b>системою раннього виявлення й цілеспрямованого розвитку професійного потенціалу</b> Сил оборони. Освіта має не лише передавати знання, а й виявляти тих, хто здатен брати складніші завдання, і будувати для них відповідні траєкторії розвитку.", "Для цього потрібне значно краще розуміння того, які компетентності вже є в Силах оборони, яких критично бракує, які розвивати всередині, а які – залучати ззовні. Освіта, цивільний досвід, мови, науково-технічні компетентності, військова спеціалізація, бойовий досвід і здатність працювати в нових середовищах мають розглядатися як елементи майбутньої спроможності. Тоді військова освіта перестає бути лише етапом кар'єри і стає інструментом свідомого формування командного, штабного, наукового та інструкторського корпусу. Ми маємо не просто навчати тих, кого направили на курс, а розуміти, яких професіоналів потребуватимуть Сили оборони через п'ять, десять і двадцять років – і вже сьогодні створювати умови для їх появи.", "Четверте – змінити підхід до <b>накопичення та поширення експертизи.</b> Сильний фахівець не повинен бути «власністю» конкретної посади, військової частини чи навіть окремої установи. Якщо його неможливо відпустити на навчання, викладання, міжнародну посаду, наукову роботу чи до іншого середовища, це означає, що система ризикує втрачати не лише людину, а й можливість поширити її знання.", "Тому професійна мобільність, викладання, міжнародний досвід, наукова робота та участь у розвитку доктрини мають стати механізмами поширення спроможностей по системі. Завдання військової освіти – не лише підготувати офіцера чи сержанта, а й забезпечити, щоб його знання поверталися в систему і ставали інституційною спроможністю. Наступництво важливе не лише на посадах, а насамперед у компетентностях. Система не має залежати від кількох людей, які знають «як це працює», – вона має постійно готувати нових носіїв критичних знань, викладачів і наставників, підтримувати професійні спільноти й передавати досвід між поколіннями.", "Окремо бачу роль <b>військової науки.</b> Наукова робота в обороні має починатися не з питання, що ми можемо дослідити, а з питання, яку проблему спроможності треба вирішити. Потрібен простий замкнений цикл:", "Тоді наука перестає бути паралельним контуром і стає частиною механізму розвитку Сил оборони. Це підводить мене до головного: розвиток людей, знань і науки – не окремі функції від бойової спроможності, а її основа.", "Я бачив, як сильні підрозділи трималися на кількох людях, які ставали незамінними. Бачив, що відбувається, коли такі люди вибувають. І бачив інший підхід – коли довіра, делегування, підготовка наступників і постійне оновлення знань є частиною самої системи.", "Сильна армія – це не армія, де кілька людей знають і можуть усе. Це армія, яка постійно формує нових професіоналів, поширює критичні знання, вчиться на власному досвіді, розвиває науку і здатна швидко перетворювати нові знання на військову спроможність.", "Мій професійний шлях привів мене від солдата, якого навчали виконувати завдання, до офіцера, який відповідав за підготовку інших, і далі до роботи на стратегічному та міжнародному рівнях. Сьогодні я хочу застосувати цей досвід не лише для виконання чергового завдання, а для розвитку системи, яка буде готувати наступне покоління українських військових і одночасно вчитися разом із війною.", "Я пройшов цю систему знизу догори. Тепер хочу допомогти їй стати такою, щоб наступним поколінням не доводилося вчитися всьому ціною власних помилок. Не берегти людей від системи. Побудувати систему, яка береже, розвиває і примножує людський та інтелектуальний капітал.", "Саме в цьому я бачу не лише свою мотивацію до участі в конкурсі, а й сенс усього професійного шляху: ставати сильнішим самому і робити сильнішою систему, яка готує тих, хто прийде після нас.<br><br>Бо сильна особистість здатна змінити багато.<br><b>Але сильна система робить сильнішим ціле покоління.</b>"];
+/* letter – chunked reading view (all text verbatim; full paragraphs in pop-ups) */
+const LCH=[
+ {id:'path',sec:'Шлях',title:'Від розвідника до стратегічного рівня',ex:'Пройшов шлях від солдата і сержанта до командира, штабного офіцера та офіцера міжнародних структур.',tags:['95 ОАеМБр','KFOR','LITPOLUKRBRIG','США','Британія','Кремнієва Долина'],p:[2]},
+ {id:'optic',sec:'Шлях',title:'ACSC і KCL: інша оптика',ex:'Україні не потрібно копіювати чужі моделі. Нам потрібна власна система, яка поєднає найкраще з НАТО, український бойовий досвід, науковий потенціал і темп сучасної війни.',p:[3]},
+ {id:'base',sec:'Шлях',title:'Основа вже є',ex:'Питання в тому, наскільки швидко ця архітектура здатна навчатися, змінюватися і перетворювати досвід на реальні спроможності.',tags:['L1–L5','безперервна освіта','НАТО'],p:[4]},
+ {id:'p1',sec:'Пріоритети',n:1,title:'Культура довіри та делегування',ex:'Сильний сержант не є конкурентом офіцеру. Він його найближчий професійний партнер.',p:[7]},
+ {id:'p2',sec:'Пріоритети',n:2,title:'Швидкість перетворення бойового досвіду на знання',ex:'Війна змінюється швидше, ніж документи.',ex2:'Люди передають досвід швидше, ніж система встигає його формалізувати.',p:[8]},
+ {id:'p3',sec:'Пріоритети',n:3,title:'Раннє виявлення й розвиток професійного потенціалу',ex:'Освіта має не лише передавати знання, а й виявляти тих, хто здатен брати складніші завдання, і будувати для них відповідні траєкторії розвитку.',p:[9,10]},
+ {id:'p4',sec:'Пріоритети',n:4,title:'Накопичення та поширення експертизи',ex:'Сильний фахівець не повинен бути «власністю» конкретної посади, військової частини чи навіть окремої установи.',p:[11,12]},
+ {id:'end',sec:'Висновок',title:'Сильна система',ex:'Сильна армія – це не армія, де кілька людей знають і можуть усе.',p:[15,16,17,18]},
+];
+const MORE=`<span class="l-more">Читати повністю <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H8M17 7v9"/></svg></span>`;
+function lcard(c,i){return `<div class="l-card card-s" data-l="${i}" tabindex="0" role="button">
+ ${c.n?`<div class="l-top"><span class="l-idx">${c.n}</span><h3>${c.title}</h3></div>`:`<h3>${c.title}</h3>`}
+ <p>${c.ex}${c.ex2?` … ${c.ex2}`:''}</p>
+ ${c.tags?`<div class="l-tags">${c.tags.map(t=>`<span>${t}</span>`).join('')}</div>`:''}${MORE}</div>`;}
+function renderLetter(){
+ const words=LP.join(' ').replace(/<[^>]+>/g,'').split(/\s+/).length, mins=Math.max(1,Math.round(words/180));
+ const L=i=>LCH.map((c,j)=>[c,j]).filter(([c])=>c.sec===i).map(([c,j])=>lcard(c,j)).join('');
+ const CYC=['виявили проблему','дослідили','знайшли рішення','перевірили на практиці','вдосконалюємо'];
+ letterWrap.innerHTML=`
+ <div class="l-hero card-s">
+  <div class="l-label">Мотиваційний лист</div>
+  <p class="l-lead">${LP[0]}</p>
+  <p class="l-intro">${LP[1]}</p>
+  <div class="l-meta"><span class="chip">≈ ${mins} хв читання</span><span class="chip">4 розділи</span>
+   <button class="pill dark" id="readAll">Весь лист <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/></svg></button></div>
+ </div>
+ <div class="section-h"><span class="l-sn">01</span> Шлях і досвід</div>
+ <div class="l-grid three">${L('Шлях')}</div>
+ <div class="l-band"><p>${LP[5]}</p><p>${LP[6]}</p></div>
+ <div class="section-h"><span class="l-sn">02</span> Чотири пріоритети</div>
+ <div class="l-grid two">${L('Пріоритети')}</div>
+ <div class="section-h"><span class="l-sn">03</span> Військова наука</div>
+ <div class="l-sci card-s"><p>${LP[13]}</p>
+  <ol class="l-steps">${CYC.map((s,i)=>`<li>${s}${i===CYC.length-1?' ↺':''}</li>`).join('')}</ol>
+  <p>${LP[14]}</p></div>
+ <div class="section-h"><span class="l-sn">04</span> Висновок</div>
+ ${LCH.map((c,j)=>c.sec==='Висновок'?`<div class="l-card l-quote card-s" data-l="${j}" tabindex="0" role="button"><p>${c.ex}</p>${MORE}</div>`:'').join('')}
+ <div class="l-final card-s"><p class="kicker">${LP[19]}</p>
+  <div class="sign">З повагою,<br><b>підполковник Магльований Сергій Іванович</b></div></div>`;
+ letterWrap.querySelectorAll('[data-l]').forEach(el=>{const go=()=>openLetterPart(+el.dataset.l);
+  el.addEventListener('click',go);el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();go();}});});
+ document.getElementById('readAll').addEventListener('click',()=>openDoc('letter'));
+}
+function openLetterPart(i){const c=LCH[i];
+ const nav=`<div class="modal-f">${i>0?`<button class="mini" data-to="${i-1}">← ${LCH[i-1].title}</button>`:'<span></span>'}${i<LCH.length-1?`<button class="mini" data-to="${i+1}">${LCH[i+1].title} →</button>`:''}</div>`;
+ modalRoot.innerHTML=`<div class="modal-scrim" id="scrim"><div class="modal" role="dialog" aria-modal="true" aria-label="${c.title}">
+  <div class="modal-h"><div><div class="when">${c.n?'Пріоритет '+c.n:c.sec} · ${i+1}/${LCH.length}</div><h3>${c.title}</h3></div>
+  <button class="modal-x" id="mx" aria-label="Закрити">×</button></div>
+  <div class="modal-body letter-m">${c.p.map(k=>`<p>${LP[k]}</p>`).join('')}</div>${nav}</div></div>`;
+ const scrim=document.getElementById('scrim');
+ scrim.addEventListener('click',e=>{if(e.target===scrim)closeModal();});
+ document.getElementById('mx').addEventListener('click',closeModal);
+ scrim.querySelectorAll('[data-to]').forEach(b=>b.addEventListener('click',()=>openLetterPart(+b.dataset.to)));
+ document.removeEventListener('keydown',escClose);document.addEventListener('keydown',escClose);document.getElementById('mx').focus();
+}
+
+function show(id){
+ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+ document.getElementById(id).classList.add('active');window.scrollTo(0,0);
+ document.body.dataset.print=(id==='letter')?'letter':'cv';
+ dock.hidden=(id==='gate');
+ dock.querySelectorAll('[data-go]').forEach(b=>b.classList.toggle('on',b.dataset.go===id));
+ if(id==='gate')resetLever();
+ try{location.hash=id;}catch(e){}
+}
+document.querySelectorAll('[data-home]').forEach(b=>b.addEventListener('click',()=>show('gate')));
+document.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>show(b.dataset.go)));
+window.addEventListener('hashchange',()=>{const h=(location.hash||'').replace('#','');if(h==='cv'||h==='letter'||h==='gate')show(h);});
+
+/* lever */
+const track=document.getElementById('track'),knob=document.getElementById('knob'),
+ fillL=document.getElementById('fillL'),fillR=document.getElementById('fillR'),
+ labL=document.getElementById('labL'),labR=document.getElementById('labR');
+let dragging=false,committed=false,dx=0,startX=0,startDx=0,goTimer=null;
+function maxDx(){return Math.max(1,(track.clientWidth-knob.offsetWidth)/2-5);}
+function paint(){const m=maxDx();const ratio=Math.max(-1,Math.min(1,dx/m));
+ knob.style.setProperty('--dx',dx+'px');
+ fillL.style.width=(ratio<0?-ratio*50:0)+'%';fillR.style.width=(ratio>0?ratio*50:0)+'%';
+ labL.classList.toggle('hot',ratio<-0.25);labR.classList.toggle('hot',ratio>0.25);
+ track.setAttribute('aria-valuenow',ratio.toFixed(2));return ratio;}
+function setKnob(v){const m=maxDx();dx=Math.max(-m,Math.min(m,v));return paint();}
+function resetLever(animate){                       // always back to the exact centre
+ dragging=false;track.classList.remove('grabbing');
+ knob.style.transition=animate?'transform .18s cubic-bezier(.34,1.5,.5,1)':'none';
+ fillL.style.transition=fillR.style.transition=animate?'width .18s':'none';
+ setKnob(0);
+ setTimeout(()=>{knob.style.transition='';fillL.style.transition=fillR.style.transition='';},animate?200:0);}
+function commit(dir){if(committed)return;committed=true;
+ resetLever(true);                                   // slider snaps back to centre immediately
+ clearTimeout(goTimer);
+ goTimer=setTimeout(()=>{committed=false;show(dir<0?'cv':'letter');},190); // then the selected document replaces the main screen
+}
+const cx=e=>(e.touches&&e.touches.length?e.touches[0]:(e.changedTouches&&e.changedTouches.length?e.changedTouches[0]:e)).clientX;
+function pDown(e){if(committed)return;dragging=true;track.classList.add('grabbing');knob.style.transition='none';
+ startX=cx(e);startDx=dx;if(e.cancelable)e.preventDefault();}
+function pMove(e){if(!dragging||committed)return;if(e.cancelable)e.preventDefault();
+ const r=setKnob(startDx+cx(e)-startX);if(r<=-0.85)commit(-1);else if(r>=0.85)commit(1);}
+function pUp(){if(!dragging)return;dragging=false;track.classList.remove('grabbing');if(committed)return;
+ const r=dx/maxDx();if(r<=-0.5)commit(-1);else if(r>=0.5)commit(1);else resetLever(true);}
+track.addEventListener('mousedown',pDown);track.addEventListener('touchstart',pDown,{passive:false});
+window.addEventListener('mousemove',pMove);window.addEventListener('touchmove',pMove,{passive:false});
+window.addEventListener('mouseup',pUp);window.addEventListener('touchend',pUp);window.addEventListener('touchcancel',pUp);
+window.addEventListener('blur',()=>{if(dragging)resetLever(true);});
+track.addEventListener('keydown',e=>{if(e.key==='ArrowLeft'){e.preventDefault();commit(-1);}if(e.key==='ArrowRight'){e.preventDefault();commit(1);}});
+window.addEventListener('resize',()=>{if(!dragging)resetLever(false);});
+window.addEventListener('pageshow',()=>resetLever(false));
+
+
+/* document view */
+const docRoot=document.getElementById('docRoot');
+const META=`<span><b>Нар.:</b> 25.12.1985</span> &nbsp;·&nbsp; <span><b>Громадянство:</b> Україна</span> &nbsp;·&nbsp; <span><b>Мови:</b> УКР (рідна) · ENG (вільно) · RUS (вільно) · POL (розмовний)</span> &nbsp;·&nbsp; <span><b>Email:</b> serhii.mahlovanyi@gmail.com</span> &nbsp;·&nbsp; <span><b>Тел.:</b> +380 93 573 7072</span>`;
+function rows(arr){return `<table class="p-tbl">`+arr.map(x=>`<tr><td class="p-when num">${x.when}</td><td><b>${x.title}</b><div class="p-org">${x.org}</div></td></tr>`).join('')+`</table>`;}
+const R=(d,body)=>`<div class="r"><div class="d">${d}</div><div>${body}</div></div>`;
+const B=(t,sm)=>`<div class="b${sm?' s':''}">${t}</div>`,N=(t,sm)=>`<div class="n${sm?' s':''}">${t}</div>`,
+ I=t=>`<div class="i">${t}</div>`,A=t=>`<div class="a">${t}</div>`;
+const DUAL=(d,at,ao,es)=>`<div class="r"><div class="d">${d}</div><div class="dual"><div>${I('(адміністративно)')+B(at,1)+N(ao,1)}</div><div>${
+ es.map(e=>(e.label?I(e.label):'')+B(e.title,1)+N(e.org,1)+(e.dates?N(e.dates,1):'')).join('')}</div></div></div>`;
+const SEC=t=>`<div class="sec">${t}</div>`;
+function cvPaper(){return `<div class="doc-paper cv">
+ <div class="h"><div>
+  <h1>Магльований Сергій Іванович</h1>
+  <div class="tag">Офіцер ЗС України &nbsp;| Підполковник &nbsp;| &nbsp;Military Education &amp; Defence Innovation &nbsp;| &nbsp;International Security &amp; Defence Policy</div>
+  <div class="meta">Нар.: 25.12.1985 | Громадянство: Україна | Мови: УКР (рідна) · ENG (вільно) · RUS (вільно) · POL (розмовний)<br>Email: serhii.mahlovanyi@gmail.com | Тел.: +380 93 573 7072</div>
+ </div><img class="ph" src="${PHOTO}" alt="Магльований С.І."></div>
+ ${SEC('Освіта')}
+ ${R('09.2025 – 07.2026',B('MSc Defence Innovation – King’s College London (KCL) Faculty of Social Science &amp; Public Policy, Велика Британія')+A('DRP (A+)'))}
+ ${R('09.2024 – т.ч.',B('Магістр: Міжнародні відносини, суспільні комунікації та регіональні студії')+N('Освітня програма: «Зовнішня політика» – КНУ ім. Тараса Шевченка, Київ'))}
+ ${R('09.2008 – 2013',B('Спеціаліст: Філолог іноземної мови та літератури (англійська)')+N('Житомирський державний університет імені Івана Франка'))}
+ ${SEC('Досвід служби')}
+ ${R('05.2025 – 07.2026',B('Командно-штабний курс підвищеного рівня (Advanced Command &amp; Staff Course)')+N('Об’єднаний командно-штабний коледж, Академія оборони, Велика Британія')+A('З відзнакою – Top International Student | 47 nations represented'))}
+ ${DUAL('01.2024 – 05.2025','Головний спеціаліст відділу організації забезпечення засобами ближнього бою, Головне управління справами','Міністерство оборони України',[
+   {label:'(суміщення)',title:'Помічник Спеціального уповноваженого Президента України з питань реалізації міжнародних безпекових гарантій та розвитку Сил оборони',org:'Офіс Президента України',dates:'03.2024 – 01.2025'},
+   {title:'Помічник заступника Міністра оборони України',org:'Міністерство оборони України',dates:'01.2025 – 05.2025'}])}
+ ${R('01.2024 – 03.2024',B('Начальник відділення імітаційного моделювання')+N('199 навчальний центр Десантно-штурмових військ ЗС України'))}
+ ${DUAL('12.2022 – 01.2024','Офіцер групи оцінювання (сертифікації)','Управління підготовки Командування Десантно-штурмових військ ЗС України',[
+   {label:'(суміщення)',title:'Відповідальний за організацію підготовки &gt; 20 тис. військовослужбовців ЗС України',org:'(Велика Британія; Франція)'},
+   {title:'Керівник міжнародної робочої групи з розробки навчальних публікацій:',org:'Leader &amp; Commander Handbook, Recruit Handbook та Slate Cards – впроваджені в рамках Op INTERFLEX.'}])}
+ ${R('12.2021 – 12.2022',B('Офіцер відділу планування та оперативної підготовки')+N('Управління підготовки Командування Десантно-штурмових військ ЗС України'))}
+ ${R('12.2018 – 12.2021',B('Future Planning (S-5)')+N('LITPOLUKRBRIG (Lithuanian–Polish–Ukrainian Brigade), Люблін, Польща'))}
+ ${R('03.2016 – 12.2018',B('Помічник / Старший помічник начальника відділення бойової підготовки')+N('Військова частина А0281, Житомир'))}
+ ${R('11.2015 – 03.2016',B('Заступник командира розвідувальної роти')+N('Військова частина В1740, Житомир'))}
+ ${R('09.2014 – 11.2015',B('Головний старшина бригади')+N('Військова частина В1740, Житомир'))}
+ ${R('11.2013 – 09.2014',B('Головний сержант розвідувальної роти')+N('Військова частина А0281, Житомир'))}
+ ${R('06.2005 – 11.2013',B('Заступник командира взводу – командир відділення розвідувальної роти')+N('Військова частина А0281, Житомир'))}
+ ${R('04.2004 – 06.2005',B('Снайпер-розвідник, розвідувальний взвод')+N('Військова частина А0281, Житомир'))}
+ ${SEC('Участь у бойових діях та міжнародних операціях')}
+ ${R('04.2014 – 05.2018',B('Бойові дії на сході України (АТО / ООС)'))}
+ ${R('04.2007 – 10.2007;\n11.2009 – 08.2010',B('Миротворча місія KFOR – Косово (підтримка миру та стабільності)'))}
+ ${SEC('Курсова підготовка')}
+ ${R('10.2025 – 03.2026',B('Hacking for Ministry of Defence (H4MoD)')+N('university accelerator module з подальшою практикою у Silicon Valley, Каліфорнія, США')+N('Велика Британія'))}
+ ${R('2018 – 2021',B('Курс Планування багатонаціональних військових навчань (інструктор)')+N('Польща / Грузія / Північна Македонія'))}
+ ${R('10 – 11.2015',B('Інструктор загальновійськової підготовки')+N('Познань, Польща'))}
+ ${R('06 – 07.2015',B('Курс штабних процедур')+N('Сараєво, Боснія і Герцеговина'))}
+ ${R('09 – 12.2011',B('US Marine Corps Combat Instructor Course')+N('Camp Geiger, Джексонвілл, Північна Кароліна, США'))}
+ ${R('07 – 09.2011',B('US Marine Corps Squad Leaders Course')+N('Camp Geiger, Джексонвілл, Північна Кароліна, США'))}
+ ${R('04 – 07.2011',B('Defense Language Institute – англійська мова')+N('Сан-Антоніо, Техас, США'))}
+ ${SEC('Ключові компетенції')}
+ <div class="cv-comp">${COMP.map(c=>`<div>▸ ${c}</div>`).join('')}</div>
+ ${SEC('Особисте')}
+ ${R('Сімейний стан',N('Одружений; дружина – Поліна Іллівна; донька – Каріна; син – Владислав'))}
+ ${R('Відповідальність',N('До адміністративної та кримінальної відповідальності не притягувався'))}
+</div>`;}
+function letterPaper(){return `<div class="doc-paper letter">
+ <p class="l-lead">Мотиваційний лист</p>
+ <p style="font-weight:700;font-size:15px">Військова освіта не повинна наздоганяти війну. Вона повинна передбачати її.</p>
+ <p>Саме так я розумію завдання військової освіти і науки – не як сукупність програм, курсів і дипломів, а як один із ключових механізмів розвитку бойової спроможності Сил оборони.</p>
+ <p>У 2004 році я розпочав службу у розвідці 95-ї окремої аеромобільної бригади. Пройшов шлях від солдата і сержанта до командира, штабного офіцера та офіцера міжнародних структур. Воював із 2014 року, отримав офіцерське звання під час виконання бойових завдань, а в період повномасштабного вторгнення – готував військовослужбовців і працював на оперативному та стратегічному рівнях. За ці роки я був не лише тим, кого навчали. Я навчав, командував, відповідав за підготовку, працював у багатонаціональних штабах і спостерігав, як різні системи формують військового професіонала. KFOR, LITPOLUKRBRIG, підготовка у США, навчання у Британії та модуль у Кремнієвій Долині дозволили побачити військову освіту з різних боків – від солдата до рівня міністерств та ОПУ.</p>
+ <p>ACSC і KCL стали не просто наступним етапом освіти, а можливістю подивитися на власний досвід крізь іншу інституційну оптику. Навчання разом із представниками п'ятдесяти країн і отримані відзнаки підтвердили не стільки особистий результат, скільки цінність середовища, яке змушує мислити ширше за межі власної посади та власної армії. Саме порівняння цих систем переконало мене: Україні не потрібно копіювати чужі моделі. Нам потрібна власна система, яка поєднає найкраще з НАТО, український бойовий досвід, науковий потенціал і темп сучасної війни.</p>
+ <p>Україна вже створила важливу основу для цього. Запроваджено багаторівневу систему професійної військової освіти L1–L5, розвивається принцип безперервної освіти протягом військової кар'єри, посилюється взаємодія з НАТО. Сьогодні питання вже не лише в тому, щоб побудувати правильну архітектуру. Питання в тому, наскільки швидко ця архітектура здатна навчатися, змінюватися і перетворювати досвід на реальні спроможності.</p>
+ <p>Саме тут я бачу свою мотивацію і свою потенційну роль.</p>
+ <p>Я хочу працювати над системою, у якій розвиток військового професіонала безпосередньо пов'язаний із розвитком спроможностей Сил оборони.</p>
+ <p>Для мене це починається з <b>культури довіри та делегування.</b> Сильний сержант не є конкурентом офіцеру. Він його найближчий професійний партнер. Відповідальність має рухатися вгору, а повноваження – вниз настільки далеко, наскільки це дозволяють компетентність, обстановка і, звісно, довіра. Таку філософію неможливо сформувати одним наказом. Вона має послідовно проходити через освіту всіх категорій військовослужбовців – від базової підготовки та сержантських курсів до оперативного і стратегічного рівнів.</p>
+ <p>Друге – це <b>швидкість перетворення бойового досвіду на знання.</b> Війна змінюється швидше, ніж документи. Доктрина потрібна для кодифікації досвіду, але не може бути єдиним каналом його передачі. Ми маємо швидше залучати бойових офіцерів і сержантів до навчання наступного покоління – через викладання, наставництво, розбір кейсів і професійні дискусії. Люди передають досвід швидше, ніж система встигає його формалізувати.</p>
+ <p>Третє – зробити військову освіту <b>системою раннього виявлення й цілеспрямованого розвитку професійного потенціалу</b> Сил оборони. Освіта має не лише передавати знання, а й виявляти тих, хто здатен брати складніші завдання, і будувати для них відповідні траєкторії розвитку.</p>
+ <p>Для цього потрібне значно краще розуміння того, які компетентності вже є в Силах оборони, яких критично бракує, які розвивати всередині, а які – залучати ззовні. Освіта, цивільний досвід, мови, науково-технічні компетентності, військова спеціалізація, бойовий досвід і здатність працювати в нових середовищах мають розглядатися як елементи майбутньої спроможності. Тоді військова освіта перестає бути лише етапом кар'єри і стає інструментом свідомого формування командного, штабного, наукового та інструкторського корпусу. Ми маємо не просто навчати тих, кого направили на курс, а розуміти, яких професіоналів потребуватимуть Сили оборони через п'ять, десять і двадцять років – і вже сьогодні створювати умови для їх появи.</p>
+ <p>Четверте – змінити підхід до <b>накопичення та поширення експертизи.</b> Сильний фахівець не повинен бути «власністю» конкретної посади, військової частини чи навіть окремої установи. Якщо його неможливо відпустити на навчання, викладання, міжнародну посаду, наукову роботу чи до іншого середовища, це означає, що система ризикує втрачати не лише людину, а й можливість поширити її знання.</p>
+ <p>Тому професійна мобільність, викладання, міжнародний досвід, наукова робота та участь у розвитку доктрини мають стати механізмами поширення спроможностей по системі. Завдання військової освіти – не лише підготувати офіцера чи сержанта, а й забезпечити, щоб його знання поверталися в систему і ставали інституційною спроможністю. Наступництво важливе не лише на посадах, а насамперед у компетентностях. Система не має залежати від кількох людей, які знають «як це працює», – вона має постійно готувати нових носіїв критичних знань, викладачів і наставників, підтримувати професійні спільноти й передавати досвід між поколіннями.</p>
+ <p>Окремо бачу роль <b>військової науки.</b> Наукова робота в обороні має починатися не з питання, що ми можемо дослідити, а з питання, яку проблему спроможності треба вирішити. Потрібен простий замкнений цикл:</p>
+ <div class="l-cycle">виявили проблему → дослідили → знайшли рішення → перевірили на практиці → вдосконалюємо</div>
+ <p>Тоді наука перестає бути паралельним контуром і стає частиною механізму розвитку Сил оборони. Це підводить мене до головного: розвиток людей, знань і науки – не окремі функції від бойової спроможності, а її основа.</p>
+ <p>Я бачив, як сильні підрозділи трималися на кількох людях, які ставали незамінними. Бачив, що відбувається, коли такі люди вибувають. І бачив інший підхід – коли довіра, делегування, підготовка наступників і постійне оновлення знань є частиною самої системи.</p>
+ <p>Сильна армія – це не армія, де кілька людей знають і можуть усе. Це армія, яка постійно формує нових професіоналів, поширює критичні знання, вчиться на власному досвіді, розвиває науку і здатна швидко перетворювати нові знання на військову спроможність.</p>
+ <p>Мій професійний шлях привів мене від солдата, якого навчали виконувати завдання, до офіцера, який відповідав за підготовку інших, і далі до роботи на стратегічному та міжнародному рівнях. Сьогодні я хочу застосувати цей досвід не лише для виконання чергового завдання, а для розвитку системи, яка буде готувати наступне покоління українських військових і одночасно вчитися разом із війною.</p>
+ <p>Я пройшов цю систему знизу догори. Тепер хочу допомогти їй стати такою, щоб наступним поколінням не доводилося вчитися всьому ціною власних помилок. Не берегти людей від системи. Побудувати систему, яка береже, розвиває і примножує людський та інтелектуальний капітал.</p>
+ <p class="l-kick">Саме в цьому я бачу не лише свою мотивацію до участі в конкурсі, а й сенс усього професійного шляху: ставати сильнішим самому і робити сильнішою систему, яка готує тих, хто прийде після нас. Бо сильна особистість здатна змінити багато. Але сильна система робить сильнішим ціле покоління.</p>
+ <p style="margin-top:22px">З повагою,<br><b>підполковник Магльований Сергій Іванович</b></p></div>`;}
+function openDoc(kind){
+ document.body.dataset.print=kind;
+ docRoot.innerHTML=`<div class="doc-scrim" id="docScrim"><div class="doc-toolbar">
+   <span class="note">Це версія для друку. Натисніть «Друк / PDF» – у діалозі браузера оберіть «Зберегти як PDF».</span>
+   <button class="btn-primary" id="doPrint">Друк / PDF</button><button class="btn-ghost" id="doClose">Закрити</button>
+  </div>${kind==='cv'?cvPaper():letterPaper()}</div>`;
+ const scrim=document.getElementById('docScrim');
+ scrim.addEventListener('click',e=>{if(e.target===scrim)docRoot.innerHTML='';});
+ document.getElementById('doClose').addEventListener('click',()=>docRoot.innerHTML='');
+ document.getElementById('doPrint').addEventListener('click',()=>{try{window.print();}catch(e){}});
+}
+document.getElementById('printBtn').addEventListener('click',()=>openDoc(document.getElementById('letter').classList.contains('active')?'letter':'cv'));
+document.querySelectorAll('[data-print-open]').forEach(b=>b.addEventListener('click',()=>openDoc('cv')));
+document.getElementById('printRoot').innerHTML=`<div class="print-doc" data-kind="cv">${cvPaper()}</div><div class="print-doc" data-kind="letter">${letterPaper()}</div>`;
+
+renderLetter();
+resetLever(false);
+{const h=(location.hash||'').replace('#','');if(h==='cv'||h==='letter')show(h);}
+</script>
+</body>
+</html>
